@@ -5,6 +5,7 @@ var cookieParser = require("cookie-parser");
 var logger = require("morgan");
 require("dotenv").config();
 const cors = require("cors");
+const jsonwebtoken = require("jsonwebtoken");
 
 var indexRouter = require("./routes/index");
 var usersRouter = require("./routes/users");
@@ -21,11 +22,45 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
-app.use(cors({ origin: "https://cosmic-lokum-28dd15.netlify.app" }));
+app.use(
+  cors({
+    origin: [
+      "http://localhost:5173",
+      "https://cosmic-lokum-28dd15.netlify.app",
+    ],
+  }),
+);
+
+function authorize(req, res, next) {
+  if (req.headers.authorization) {
+    try {
+      const payload = jsonwebtoken.verify(
+        req.headers.authorization,
+        process.env.JWT_SECRET,
+      );
+      if (payload) {
+        req.user = payload;
+        next();
+      }
+    } catch (error) {
+      res.status(401).json({
+        message: {
+          error: "Unauthorized Access",
+        },
+      });
+    }
+  } else {
+    res.status(401).json({
+      message: {
+        error: "Unauthorized Access",
+      },
+    });
+  }
+}
 
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
-app.use("/prompt", promptRouter);
+app.use("/prompt", authorize, promptRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

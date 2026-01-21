@@ -13,7 +13,7 @@ router.get("/search-prompt", async function (req, res, next) {
         },
       };
     }
-    const prompts = await Prompt.find(query);
+    const prompts = await Prompt.find(query).populate("author_id");
     return res.status(200).json({
       message: "Prompt fetched successfully",
       prompts,
@@ -28,6 +28,7 @@ router.get("/search-prompt", async function (req, res, next) {
 
 router.post("/create-prompt", async function (req, res) {
   try {
+    req.body.author_id = req.user._id;
     const prompt = new Prompt(req.body);
     await prompt.save();
     return res.status(201).json({
@@ -80,7 +81,7 @@ router.put("/vote-prompt/:id", async function (req, res) {
 
 router.get("/get-prompt/:id", async function (req, res, next) {
   try {
-    const prompt = await Prompt.findOne({_id : req.params.id})
+    const prompt = await Prompt.findOne({ _id: req.params.id });
     return res.status(200).json({
       message: "Prompt fetched successfully",
       prompt,

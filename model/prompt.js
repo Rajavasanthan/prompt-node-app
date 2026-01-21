@@ -9,6 +9,10 @@ const PromptSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+  author_id : {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   likes: {
     type: Number,
     default: 0,
