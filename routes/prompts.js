@@ -5,15 +5,28 @@ var router = express.Router();
 /* GET home page. */
 router.get("/search-prompt", async function (req, res, next) {
   try {
-    let query = {};
+    let query = [
+      {
+        $match: {},
+      }
+    ];
     if (req.query.search) {
-      query = {
-        $text: {
-          $search: req.query.search,
+      query = [
+      {
+        $search: {
+          index: "title_search",
+          text: {
+            query: req.query.search,
+            path: {
+              wildcard: "*",
+            },
+          },
         },
-      };
-    }
-    const prompts = await Prompt.find(query).populate("author_id");
+      },
+    ]
+  }
+    // const prompts = await Prompt.find(query).populate("author_id");
+    const prompts = await Prompt.aggregate(query);
     return res.status(200).json({
       message: "Prompt fetched successfully",
       prompts,
@@ -28,20 +41,35 @@ router.get("/search-prompt", async function (req, res, next) {
 
 router.get("/get-my-prompt", async function (req, res, next) {
   try {
-    let query = { author_id: req.user._id };
+    let query = [
+      {
+        $match: {
+          author_id: req.user._id
+        },
+      }
+    ];
     if (req.query.search) {
-      query = {
-        $and: [
-          {
-            $text: {
-              $search: req.query.search,
+      query = [
+      {
+        $search: {
+          index: "title_search",
+          text: {
+            query: req.query.search,
+            path: {
+              wildcard: "*",
             },
           },
-          { author_id: req.user._id },
-        ],
-      };
+        },
+      },
+      {
+        $match: {
+          author_id: req.user._id
+        },
+      }
+    ]
     }
-    const prompts = await Prompt.find(query).populate("author_id");
+    const prompts = await Prompt.aggregate(query)
+    // const prompts = await Prompt.find(query).populate("author_id");
     return res.status(200).json({
       message: "Prompt fetched successfully",
       prompts,
