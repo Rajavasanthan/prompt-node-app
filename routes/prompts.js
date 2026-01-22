@@ -26,6 +26,34 @@ router.get("/search-prompt", async function (req, res, next) {
   }
 });
 
+router.get("/get-my-prompt", async function (req, res, next) {
+  try {
+    let query = { author_id: req.user._id };
+    if (req.query.search) {
+      query = {
+        $and: [
+          {
+            $text: {
+              $search: req.query.search,
+            },
+          },
+          { author_id: req.user._id },
+        ],
+      };
+    }
+    const prompts = await Prompt.find(query).populate("author_id");
+    return res.status(200).json({
+      message: "Prompt fetched successfully",
+      prompts,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Error creating prompt",
+      error: error.message,
+    });
+  }
+});
+
 router.post("/create-prompt", async function (req, res) {
   try {
     req.body.author_id = req.user._id;

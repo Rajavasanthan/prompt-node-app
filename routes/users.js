@@ -13,6 +13,7 @@ router.post("/login", async function (req, res, next) {
     // if hash is matched with user's hash then success
     // else fail
     // if user not found then throw error
+    console.log(JSON.stringify(req.body))
     if (!req.body.email) {
       res.status(401).json({
         message: "Email is required",
@@ -33,6 +34,7 @@ router.post("/login", async function (req, res, next) {
       res.status(200).json({
         message: "User logged in successfully",
         token,
+        name : user.name
       });
     } else {
       res.status(401).json({
